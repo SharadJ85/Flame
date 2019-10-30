@@ -1,0 +1,164 @@
+const functions = require("firebase-functions");
+const admin = require("firebase-admin");
+
+admin.initializeApp();
+
+
+
+/* 
+const express = require("express");
+const app = express();
+*/
+
+//above code in one line__
+const app = require("express")();
+
+// // Create and Deploy Your First Cloud Functions
+// // https://firebase.google.com/docs/functions/write-firebase-functions
+
+const firebaseConfig = {
+  apiKey: "AIzaSyBoUmXSmIMLotYUm-E8f8wf6fchwIWp6sI",
+  authDomain: "flame855.firebaseapp.com",
+  databaseURL: "https://flame855.firebaseio.com",
+  projectId: "flame855",
+  storageBucket: "flame855.appspot.com",
+  messagingSenderId: "99636361571",
+  appId: "1:99636361571:web:6e6201d8c86307397afb56",
+  measurementId: "G-LPEQX5T02H",
+};
+//using express
+
+const firebase = require("firebase");
+firebase.initializeApp(firebaseConfig);
+
+app.get("/shouts", (req, res) => {
+  admin
+    .firestore()
+    .collection("shouts")
+    .orderBy("createdAt", "desc")
+    .get()
+    .then(data => {
+      let shouts = [];
+      data.forEach(doc => {
+        shouts.push(
+          {
+            screamId: doc.id,
+            body: doc.data().body,
+            userHandle: doc.data().userHandle,
+            createdAt: doc.data().createdAt
+          }
+          /* //spread operator = ...
+          ...doc.id,
+          ...doc.data().body,
+          ...doc.data().userHandle,
+          ...doc.data().createdAt*/
+        );
+      });
+      return res.json(shouts);
+    })
+    .catch(err => console.error(err));
+});
+
+app.post("/shout", (req, res) => {
+  const newShout = {
+    body: req.body.body,
+    userHandle: req.body.userHandle,
+    createdAt: new Date().toISOString() //admin.firestore.Timestamp.fromDate(new Date())
+  };
+
+  admin
+    .firestore()
+    .collection("shouts")
+    .add(newShout)
+    .then(doc => {
+      res.json({
+        message: `document ${doc.id} user ${
+          doc.data().userHandle
+        } created successfully`
+      });
+    })
+    .catch(err => {
+      res.status(500).json({ error: "something is wrong" });
+      console.error(err);
+    });
+});
+
+/*
+using node:-
+
+
+exports.helloWorld = functions.https.onRequest((request, response) => {
+  response.send("Hello from lol!");
+});
+
+
+
+exports.getShouts = functions.https.onRequest((req, res) => {
+  admin
+    .firestore()
+    .collection("shouts")
+    .get()
+    .then(data => {
+      let shouts = [];
+      data.forEach(doc => {
+        shouts.push(doc.data());
+      });
+      return res.json(shouts);
+    })
+    .catch(err => console.error(err));
+});
+
+exports.createShouts = functions.https.onRequest((req, res) => {
+  if (req.method !== "POST") {
+    return res.status(400).json({ error: "Method not allowed" });
+  }
+
+  const newShout = {
+    body: req.body.body,
+    userHandle: req.body.userHandle,
+    createdAt: admin.firestore.Timestamp.fromDate(new Date())
+  };
+
+  admin
+    .firestore()
+    .collection("shouts")
+    .add(newShout)
+    .then(doc => {
+      res.json({ message: `document ${doc.id} created successfully` });
+    })
+    .catch(err => {
+      res.status(500).json({ error: "something is wrong" });
+      console.error(err);
+    });
+});
+*/
+
+//Signup route
+app.post("/signup"),
+  (req, res) => {
+    const newUser = {
+      email: req.body.email,
+      password: req.body.password,
+      confirmPassword: req.body.confirmPassword,
+      handle: req.body.handle
+    };
+
+    //TODO:validate data entered
+
+    firebase
+      .auth()
+      .createUserWithEmailAndPassword(newUser.email, newUser.password);
+    then(data => {
+      return res
+        .status(201)
+        .json({ message: `user ${data.user.uid} signed up successfully!` })
+        .catch(err => {
+          console.error(err);
+          return res.status(500).json({ error: err.code });
+        });
+    });
+  };
+
+//https://baseurl.com/api/
+
+exports.api = functions.https.onRequest(app);
